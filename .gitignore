@@ -1,7 +1,7 @@
 /target
 /src/main.exe
 /src/modio.rs
-/.vscode
+.vscode
 /hello-world-macro
 /macro.txt
 /009-opaque-metavariable.md
