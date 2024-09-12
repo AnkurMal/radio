@@ -9,4 +9,3 @@ description = "A very simple, high level, audio playback library, ported from ra
 build = "build.rs"
 
 [dependencies]
-macroquad = "0.4.11"
