@@ -255,8 +255,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust"
-version = "0.1.0"
+name = "radio"
+version = "1.0.0"
 dependencies = [
  "macroquad",
 ]

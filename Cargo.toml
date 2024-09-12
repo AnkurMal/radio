@@ -1,7 +1,11 @@
 [package]
-name = "rust"
-version = "0.1.0"
+name = "radio"
+version = "1.0.0"
 edition = "2021"
+authors = ["Ankur Mallick <ankurmallick80@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/AnkurMal/radio"
+description = "A very simple, high level, audio playback library, ported from raudio library, for games."
 build = "build.rs"
 
 [dependencies]
