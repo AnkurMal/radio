@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "radio"
+name = "radio-rs"
 version = "1.0.0"
