@@ -1,8 +1,5 @@
-use std::fs;
-
+// build.rs
 fn main() {
-    fs::copy("lib/audio.dll", "target/debug/audio.dll").unwrap();
-
-    println!("cargo:rustc-link-lib=dylib=audio");
-    println!("cargo:rustc-link-search=native=./lib");
+    println!("cargo:rustc-link-search=./lib");
+    println!("cargo:rustc-link-lib=static=audio");
 }
