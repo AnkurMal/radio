@@ -1,6 +1,6 @@
 [package]
 name = "radio-rs"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 authors = ["Ankur Mallick <ankurmallick80@gmail.com>"]
 license = "MIT"
