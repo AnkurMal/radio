@@ -9,10 +9,8 @@ A very simple, high level, audio playback library, ported from [raudio](https://
 
 ```rust
 use radio_rs::*;
-use macroquad::prelude::*;
 
-#[macroquad::main("sample")]
-async fn main() {
+fn main() {
     let mut audio_device = AudioDevice::new();
     let music = Music::load(&audio_device, "music.mp3");
 
