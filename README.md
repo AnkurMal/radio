@@ -5,7 +5,26 @@ A very simple, high level, audio playback library, ported from [raudio](https://
 2. Can only be played as `Music`: `.xm`
 
 ## Example
-Here is an example code of it being used with [macroquad](https://github.com/not-fl3/macroquad):
+1. Example code of it being used in a standalone manner:
+
+```rust
+use radio_rs::*;
+use macroquad::prelude::*;
+
+#[macroquad::main("sample")]
+async fn main() {
+    let mut audio_device = AudioDevice::new();
+    let music = Music::load(&audio_device, "music.mp3");
+
+    music.play();
+    loop {
+        music.update();
+        audio_device.sync();
+    }
+}
+```
+
+2. Example code of it being used with [macroquad](https://github.com/not-fl3/macroquad):
 
 ```rust
 use radio_rs::*;
@@ -25,3 +44,5 @@ async fn main() {
     }
 }
 ```
+
+NOTE: Here `audio_device.sync()` is not used because `next_frame().await` waits for the for the next frame anyway.

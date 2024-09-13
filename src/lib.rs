@@ -1,7 +1,8 @@
 #![allow(unused, non_snake_case, non_camel_case_types)]
 use std::ffi::CString;
 use std::os::raw::*;
-use std::time::Duration;
+use std::time::{Duration, Instant};
+use std::thread;
 
 #[repr(C)]
 #[derive(Clone)]
@@ -13,7 +14,9 @@ pub struct Wave {
     data: *mut c_void
 }
 
-pub struct AudioDevice;
+pub struct AudioDevice {
+    last_frame_time: Instant
+}
 
 #[repr(C)]
 struct rAudioBuffer {
@@ -97,17 +100,31 @@ impl Drop for Wave {
 }
 
 impl AudioDevice {
+    const FPS: u64 = 60;
+    const FRAME_DURATION: Duration = Duration::from_millis(1000 / Self::FPS);
+
     pub fn new() -> Self {
         unsafe {
             InitAudioDevice();
         }
-        AudioDevice
+        AudioDevice {last_frame_time: Instant::now()}
     }
 
     pub fn is_ready(&self) -> bool {
         unsafe {
             IsAudioDeviceReady()
         }
+    }
+
+    pub fn sync(&mut self) {
+        let now = Instant::now();
+        let elapsed = now.duration_since(self.last_frame_time);
+
+        if elapsed < Self::FRAME_DURATION {
+            thread::sleep(Self::FRAME_DURATION - elapsed);
+        }
+
+        self.last_frame_time = Instant::now();
     }
 
     pub fn set_master_volume(&self, volume: f32) {
