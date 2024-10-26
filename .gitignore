@@ -1,1 +1,4 @@
-/target
+target/
+/music.mp3
+/src/main.rs
+.idea/

@@ -1,6 +1,6 @@
 [package]
 name = "radio-rs"
-version = "2.0.1"
+version = "2.0.2"
 edition = "2021"
 authors = ["Ankur Mallick <ankurmallick80@gmail.com>"]
 license = "MIT"
@@ -9,3 +9,4 @@ description = "A very simple, high level, audio playback library, ported from ra
 build = "build.rs"
 
 [dependencies]
+macroquad = "0.4.13"

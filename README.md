@@ -12,7 +12,7 @@ use radio_rs::*;
 
 fn main() {
     let mut audio_device = AudioDevice::new();
-    let music = Music::load(&audio_device, "music.mp3");
+    let music = Music::load("music.mp3");
 
     music.play();
     loop {
@@ -31,16 +31,15 @@ use macroquad::prelude::*;
 #[macroquad::main("sample")]
 async fn main() {
     let audio_device = AudioDevice::new();
-    let music = Music::load(&audio_device, "music.mp3");
+    let music = Music::load("music.mp3");
 
     music.play();
     loop {
         clear_background(LIGHTGRAY);
         music.update();
+        audio_device.sync();
         
         next_frame().await
     }
 }
 ```
-
-NOTE: Here `audio_device.sync()` is not used because `next_frame().await` waits for the for the next frame anyway.

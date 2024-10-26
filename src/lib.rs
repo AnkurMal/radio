@@ -1,67 +1,78 @@
 #![allow(unused, non_snake_case, non_camel_case_types)]
-use std::ffi::CString;
+use std::ffi::{CString, OsStr};
 use std::os::raw::*;
 use std::time::{Duration, Instant};
-use std::thread;
+use std::{thread, path::Path};
+use std::marker::PhantomData;
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Wave {
-    frameCount: c_uint,
-    sampleRate: c_uint,
-    sampleSize: c_uint,
-    channels: c_uint,
+    pub frame_count: c_uint,
+    pub sample_rate: c_uint,
+    pub sample_size: c_uint,
+    pub channels: c_uint,
     data: *mut c_void
 }
 
+#[derive(Debug)]
 pub struct AudioDevice {
     last_frame_time: Instant
 }
 
+// for opaque structs - https://doc.rust-lang.org/nomicon/ffi.html#representing-opaque-structs (credit)
 #[repr(C)]
-struct rAudioBuffer {
-    _private: [u8; 0]
+pub struct rAudioBuffer {
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, core::marker::PhantomPinned)>
 }
 
 #[repr(C)]
 struct rAudioProcessor {
-    _private: [u8; 0]
+    _data: [u8; 0],
+    _marker: PhantomData<(*mut u8, core::marker::PhantomPinned)>
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct AudioStream {
     buffer: *mut rAudioBuffer,
     processor: *mut rAudioProcessor,
-
-    sampleRate: c_uint,
-    sampleSize: c_uint,
-    channels: c_uint
+    pub sample_rate: c_uint,
+    pub sample_size: c_uint,
+    pub channels: c_uint
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Sound {
-    stream: AudioStream,
-    frameCount: c_uint
+    pub stream: AudioStream,
+    pub frame_count: c_uint
 }
 
 #[repr(C)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Music {
-    stream: AudioStream,
-    frameCount: c_uint,
+    pub stream: AudioStream,
+    pub frame_count: c_uint,
     looping: bool,
-
-    ctxType: c_int,
-    ctxData: *mut c_void
+    ctx_type: c_int,
+    ctx_data: *mut c_void
 }
 
 impl Wave {
-    pub fn load(path: &str) -> Self {
-        let file = CString::new(path).unwrap();
-        unsafe {
-            LoadWave(file.as_ptr())
+    pub fn load(path: impl AsRef<Path>) -> Self {
+        let path = path.as_ref();
+        if !path.exists() {
+            panic!("File doesn't exist.");
+        }
+
+        match path.extension().and_then(OsStr::to_str).unwrap() {
+            "wav" => {
+                let file = CString::new(path.to_str().unwrap()).unwrap();
+                unsafe { LoadWave(file.as_ptr()) }
+            },
+            _ => panic!("Unsupported file format")
         }
     }
 
@@ -71,8 +82,8 @@ impl Wave {
         }
     }
 
-    pub fn export(&self, file_name: &str) {
-        let file = CString::new(file_name).unwrap();
+    pub fn export(&self, file_name: impl AsRef<Path>) {
+        let file = CString::new(file_name.as_ref().to_str().unwrap()).unwrap();
         unsafe {
             ExportWave(self.clone(), file.as_ptr());
         }
@@ -96,6 +107,12 @@ impl Drop for Wave {
         unsafe {
             UnloadWave(self.clone());
         }
+    }
+}
+
+impl Default for AudioDevice {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -150,12 +167,22 @@ impl Drop for AudioDevice {
 }
 
 impl Sound {
-    pub fn load(device: &AudioDevice, path: &str) -> Self {
-        let file = CString::new(path).unwrap();
-        unsafe { LoadSound(file.as_ptr()) }
+    pub fn load(path: impl AsRef<Path>) -> Self {
+        let path = path.as_ref();
+        if !path.exists() {
+            panic!("File doesn't exist.");
+        }
+
+        match path.extension().and_then(OsStr::to_str).unwrap() {
+            "wav" | "qoa" | "ogg" | "mp3" | "flac" => {
+                let file = CString::new(path.to_str().unwrap()).unwrap();
+                unsafe { LoadSound(file.as_ptr()) }
+            },
+            _ => panic!("Unsupported file format")
+        }
     }
 
-    pub fn load_from_wave(device: &AudioDevice, wave: &Wave) -> Self {
+    pub fn load_from_wave(wave: &Wave) -> Self {
         unsafe {
             LoadSoundFromWave(wave.clone())
         }
@@ -209,9 +236,19 @@ impl Drop for Sound {
 }
 
 impl Music {
-    pub fn load(device: &AudioDevice, path: &str) -> Self {
-        let file = CString::new(path).unwrap();
-        unsafe { LoadMusicStream(file.as_ptr()) }
+    pub fn load(path: impl AsRef<Path>) -> Self {
+        let path = path.as_ref();
+        if !path.exists() {
+            panic!("File doesn't exist.");
+        }
+        
+        match path.extension().and_then(OsStr::to_str).unwrap() {
+            "wav" | "qoa" | "ogg" | "mp3" | "flac" | "xm" => {
+                let file = CString::new(path.to_str().unwrap()).unwrap();
+                unsafe { LoadMusicStream(file.as_ptr()) }
+            },
+            _ => panic!("Unsupported file format")
+        }
     }
 
     pub fn is_ready(&self) -> bool {
@@ -283,6 +320,7 @@ impl Drop for Music {
     }
 }
 
+#[no_mangle]
 #[link(name = "audio")]
 extern "C" {
     fn InitAudioDevice();
